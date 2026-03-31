@@ -59,6 +59,10 @@ export class VoxelTerrain {
     this.solidInstances = [];  // { x, y, z, biomeH }
     this.waterInstances = [];
 
+    // Elevation-source state
+    this._demData  = null;   // cached DEM grid once loaded
+    this.usingDEM  = false;  // true when real elevation is active
+
     this._generateFromNoise();
     this._buildMeshes();
   }
@@ -175,17 +179,50 @@ export class VoxelTerrain {
       console.info('[DEM] Fetching Auckland elevation data…');
       const demData = await fetchAucklandDEM(this.gridW, this.gridD);
 
+      // Cache the raw grid so we can toggle back to it later.
+      this._demData = demData;
+
       // Swap out all instance arrays and rebuild meshes in-place.
       this.solidInstances = [];
       this.waterInstances = [];
       this._generateFromDEM(demData);
       this._disposeMeshes();
       this._buildMeshes();
+      this.usingDEM = true;
 
       console.info('[DEM] Auckland terrain rebuilt from real elevation data.');
+      return true;
     } catch (err) {
       console.warn('[DEM] Elevation fetch failed — keeping procedural terrain.', err.message);
+      return false;
     }
+  }
+
+  /**
+   * Switch between real-world DEM and procedural noise terrain.
+   * Has no effect if DEM data has not yet been loaded.
+   *
+   * @param {boolean} useDEM  true → real elevation, false → procedural noise
+   */
+  setElevationSource(useDEM) {
+    if (useDEM && !this._demData) {
+      console.warn('[Terrain] Cannot switch to real elevation — DEM data not yet loaded.');
+      return;
+    }
+    if (useDEM === this.usingDEM) return; // already in the requested mode
+
+    this.solidInstances = [];
+    this.waterInstances = [];
+
+    if (useDEM) {
+      this._generateFromDEM(this._demData);
+    } else {
+      this._generateFromNoise();
+    }
+
+    this._disposeMeshes();
+    this._buildMeshes();
+    this.usingDEM = useDEM;
   }
 
   // ── Mesh construction ──────────────────────────────────────────────────────
