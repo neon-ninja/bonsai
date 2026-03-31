@@ -111,10 +111,10 @@ export class SunSystem {
   /**
    * @param {THREE.Scene}    scene
    * @param {THREE.WebGLRenderer} renderer
-   * @param {number} lat  latitude  (default: Lake District, UK)
+   * @param {number} lat  latitude  (default: Auckland, NZ)
    * @param {number} lon  longitude
    */
-  constructor(scene, renderer, lat = 54.45, lon = -2.99) {
+  constructor(scene, renderer, lat = -36.8509, lon = 174.7645) {
     this.scene    = scene;
     this.renderer = renderer;
     this.lat = lat;

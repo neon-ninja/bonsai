@@ -13,9 +13,9 @@ import { AudioManager }      from './AudioManager.js';
 import { CameraController }  from './CameraController.js';
 import { DataPanel }         from './DataPanel.js';
 
-// ── Default location: Lake District, UK ─────────────────────────────────────
-let LAT = 54.45;
-let LON = -2.99;
+// ── Default location: Auckland, NZ ──────────────────────────────────────────
+let LAT = -36.8509;
+let LON = 174.7645;
 
 // ── Scene / Renderer ─────────────────────────────────────────────────────────
 
@@ -54,10 +54,11 @@ navigator.geolocation?.getCurrentPosition(
     weather.lon  = LON;
     ecosystem.resetLocation();
     const lonDir = LON >= 0 ? 'E' : 'W';
-    dataPanel.setLocation(`${LAT.toFixed(2)}°N, ${Math.abs(LON).toFixed(2)}°${lonDir}`);
+    const latDir = LAT >= 0 ? 'N' : 'S';
+    dataPanel.setLocation(`${Math.abs(LAT).toFixed(2)}°${latDir}, ${Math.abs(LON).toFixed(2)}°${lonDir}`);
     console.info(`[Geo] Using device location: ${LAT.toFixed(4)}, ${LON.toFixed(4)}`);
   },
-  () => console.info('[Geo] Using default location (Lake District, UK)'),
+  () => console.info('[Geo] Using default location (Auckland, NZ)'),
   { timeout: 5000 }
 );
 
