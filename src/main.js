@@ -12,6 +12,7 @@ import { EcosystemML }       from './EcosystemML.js';
 import { AudioManager }      from './AudioManager.js';
 import { CameraController }  from './CameraController.js';
 import { DataPanel }         from './DataPanel.js';
+import { CompassRose }       from './CompassRose.js';
 
 // ── Default location: Auckland, NZ ──────────────────────────────────────────
 let LAT = -36.8509;
@@ -41,6 +42,7 @@ const ecosystem = new EcosystemML(terrain.gridW, terrain.gridD);
 const audio     = new AudioManager();
 const camCtrl   = new CameraController(camera, canvas, terrain.centre, terrain.halfSize);
 const dataPanel = new DataPanel();
+const compass   = new CompassRose();
 
 // Fetch real Auckland DEM data in the background; terrain rebuilds when ready.
 terrain.loadDEM();
@@ -135,6 +137,9 @@ function animate() {
 
   // Camera — always use real dt so fly-through speed is independent of time-warp
   camCtrl.update(dt);
+
+  // Compass rose — update every frame so it tracks the camera smoothly
+  compass.update(camera, terrain.centre);
 
   // Sun (every 2nd frame is sufficient — sun moves slowly)
   if (_frame % 2 === 0) {
