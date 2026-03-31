@@ -47,8 +47,8 @@ export async function fetchAucklandDEM(gridW, gridD) {
       const s   = gridW > 1 ? col / (gridW - 1) : 0;
       const lon = AUCKLAND_BOUNDS.lonWest
                 + s * (AUCKLAND_BOUNDS.lonEast - AUCKLAND_BOUNDS.lonWest);
-      lats.push(+lat.toFixed(6));
-      lons.push(+lon.toFixed(6));
+      lats.push(lat.toFixed(6));
+      lons.push(lon.toFixed(6));
     }
   }
 
@@ -62,11 +62,14 @@ export async function fetchAucklandDEM(gridW, gridD) {
   }
 
   const parts = await Promise.all(
-    batches.map(b => {
-      const url = `${ELEV_API}?latitude=${b.lats.join(',')}&longitude=${b.lons.join(',')}`;
-      return fetch(url)
+    batches.map((b, idx) => {
+      const params = new URLSearchParams({
+        latitude:  b.lats.join(','),
+        longitude: b.lons.join(','),
+      });
+      return fetch(`${ELEV_API}?${params}`)
         .then(r => {
-          if (!r.ok) throw new Error(`Elevation API ${r.status}`);
+          if (!r.ok) throw new Error(`Elevation API batch ${idx}: ${r.status} ${r.statusText}`);
           return r.json();
         })
         .then(d => d.elevation);

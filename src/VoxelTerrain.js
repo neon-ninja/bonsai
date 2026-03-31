@@ -107,6 +107,8 @@ export class VoxelTerrain {
    */
   _generateFromDEM(demData) {
     // Find the maximum land elevation to use as the scaling ceiling.
+    // If every cell is ocean (elev ≤ 0) maxLandElev stays at 1; in that case
+    // every cell takes the elev ≤ 0 branch below so the value is never used.
     let maxLandElev = 1; // guard against division by zero
     for (let z = 0; z < this.gridD; z++) {
       for (let x = 0; x < this.gridW; x++) {
