@@ -1,0 +1,25 @@
+{
+  "name": "bonsai",
+  "version": "1.0.0",
+  "description": "Living 3D land model — voxel terrain with real-time environmental data, ML-driven ecosystem, and procedural audio",
+  "private": true,
+  "scripts": {
+    "start": "vite --port 8080",
+    "dev": "vite --port 8080",
+    "build": "vite build",
+    "preview": "vite preview --port 8080",
+    "lint": "eslint src --ext .js"
+  },
+  "keywords": [
+    "three.js",
+    "voxel",
+    "generative-art",
+    "machine-learning",
+    "web-audio"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "three": "^0.183.2",
+    "vite": "^8.0.3"
+  }
+}
