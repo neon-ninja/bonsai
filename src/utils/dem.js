@@ -15,8 +15,8 @@
 export const AUCKLAND_BOUNDS = {
   latNorth: -36.65,  // ~Orewa / northern tip of the grid
   latSouth: -37.05,  // ~southern Manukau Harbour
-  lonWest:  174.55,  // ~Waitakere Ranges
-  lonEast:  175.05,  // ~eastern suburbs / Howick
+  lonWest:  174.50,  // ~Manukau Harbour entrance / western Waitakere Ranges
+  lonEast:  175.00,  // ~eastern suburbs / Howick
 };
 
 const ELEV_API  = 'https://api.open-meteo.com/v1/elevation';

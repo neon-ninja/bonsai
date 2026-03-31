@@ -127,12 +127,15 @@ export class VoxelTerrain {
           // Ocean / harbour — sits below water level in every biome check.
           norm = 0;
         } else {
-          // Map positive elevation linearly onto [WATER_LEVEL, 1.0] so the
-          // existing biome colour thresholds remain meaningful:
-          //   near-sea-level land → sand / shallow-water colours
+          // Map positive elevation linearly onto [SAND_LEVEL, 1.0].
+          // Starting from SAND_LEVEL (rather than WATER_LEVEL) ensures every
+          // land cell is assigned a biome colour of grassWet or above — never
+          // the blue shallowWater colour — and a voxel height strictly above
+          // waterH so the water overlay never incorrectly floods genuine land.
+          //   near-sea-level land → grass colours
           //   mid-elevation      → grass / forest
           //   high terrain       → rock / snow
-          norm = WATER_LEVEL + (elev / maxLandElev) * (1 - WATER_LEVEL);
+          norm = SAND_LEVEL + (elev / maxLandElev) * (1 - SAND_LEVEL);
         }
         this.normMap[z][x] = norm;
         this.heightMap[z][x] = Math.max(1, Math.round(norm * this.maxH));
