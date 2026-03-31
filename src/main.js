@@ -133,8 +133,8 @@ function animate() {
 
   _frame++;
 
-  // Camera
-  camCtrl.update(dt * _timeWarp);
+  // Camera — always use real dt so fly-through speed is independent of time-warp
+  camCtrl.update(dt);
 
   // Sun (every 2nd frame is sufficient — sun moves slowly)
   if (_frame % 2 === 0) {
