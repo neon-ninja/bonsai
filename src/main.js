@@ -34,13 +34,16 @@ const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerH
 
 // ── Subsystem initialisation ─────────────────────────────────────────────────
 
-const terrain   = new VoxelTerrain(scene);
+const terrain   = new VoxelTerrain(scene, { gridW: 64, gridD: 64 });
 const sunSys    = new SunSystem(scene, renderer, LAT, LON);
 const weather   = new WeatherSystem(scene, LAT, LON);
 const ecosystem = new EcosystemML(terrain.gridW, terrain.gridD);
 const audio     = new AudioManager();
 const camCtrl   = new CameraController(camera, canvas, terrain.centre, terrain.halfSize);
 const dataPanel = new DataPanel();
+
+// Fetch real Auckland DEM data in the background; terrain rebuilds when ready.
+terrain.loadDEM();
 
 // ── Geolocation (optional — update data sources if available) ─────────────
 
