@@ -45,7 +45,15 @@ const dataPanel = new DataPanel();
 const compass   = new CompassRose();
 
 // Fetch real Auckland DEM data in the background; terrain rebuilds when ready.
-terrain.loadDEM();
+terrain.loadDEM().then(ok => {
+  if (ok) {
+    const btn = document.getElementById('btn-terrain');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🎲 Procedural';
+    }
+  }
+});
 
 // ── Geolocation (optional — update data sources if available) ─────────────
 
@@ -77,6 +85,13 @@ function buildUI() {
     overlay.style.opacity = '0';
     overlay.style.pointerEvents = 'none';
     setTimeout(() => { overlay.style.display = 'none'; }, 600);
+  });
+
+  // Terrain source toggle (disabled until DEM data has loaded)
+  const btnTerrain = document.getElementById('btn-terrain');
+  btnTerrain?.addEventListener('click', () => {
+    terrain.setElevationSource(!terrain.usingDEM);
+    if (btnTerrain) btnTerrain.textContent = terrain.usingDEM ? '🎲 Procedural' : '🌍 Real Elevation';
   });
 
   // Fly-through button

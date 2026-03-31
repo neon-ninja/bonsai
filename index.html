@@ -103,6 +103,14 @@
       background: rgba(40, 80, 150, 0.8);
       color: #e0f0ff;
     }
+    #controls button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    #controls button:disabled:hover {
+      background: rgba(30, 60, 110, 0.6);
+      color: #a8ccf0;
+    }
     #controls label {
       font-size: 11px;
       color: rgba(160, 190, 230, 0.6);
@@ -172,6 +180,8 @@
     <button id="btn-fly">✈ Auto Tour</button>
     <div class="sep"></div>
     <button id="btn-data">📊 Data</button>
+    <div class="sep"></div>
+    <button id="btn-terrain" disabled title="Real elevation loading…">🌍 Loading…</button>
     <div class="sep"></div>
     <label for="volume-slider">🔊</label>
     <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.6" />
