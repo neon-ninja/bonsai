@@ -26,7 +26,7 @@ export class WeatherSystem {
    * @param {number} lat
    * @param {number} lon
    */
-  constructor(scene, lat = 54.45, lon = -2.99) {
+  constructor(scene, lat = -36.8509, lon = 174.7645) {
     this.scene = scene;
     this.lat   = lat;
     this.lon   = lon;

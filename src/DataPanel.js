@@ -79,7 +79,7 @@ export class DataPanel {
       paddingTop: '6px',
     });
     locLine.id = 'data-location';
-    locLine.textContent = 'Location: Lake District, UK';
+    locLine.textContent = 'Location: Auckland, NZ';
     panel.appendChild(locLine);
 
     document.body.appendChild(panel);
