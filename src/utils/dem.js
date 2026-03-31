@@ -52,7 +52,7 @@ export async function fetchAucklandDEM(gridW, gridD) {
     }
   }
 
-  // Split coordinate list into BATCH-sized chunks and fire them in parallel.
+  // Split coordinate list into BATCH-sized chunks and fetch them sequentially.
   const batches = [];
   for (let i = 0; i < lats.length; i += BATCH) {
     batches.push({
@@ -61,20 +61,24 @@ export async function fetchAucklandDEM(gridW, gridD) {
     });
   }
 
-  const parts = await Promise.all(
-    batches.map((b, idx) => {
-      const params = new URLSearchParams({
-        latitude:  b.lats.join(','),
-        longitude: b.lons.join(','),
-      });
-      return fetch(`${ELEV_API}?${params}`)
-        .then(r => {
-          if (!r.ok) throw new Error(`Elevation API batch ${idx}: ${r.status} ${r.statusText}`);
-          return r.json();
-        })
-        .then(d => d.elevation);
-    })
-  );
+  // Fetch batches sequentially to avoid rate-limiting (HTTP 429).
+  const parts = [];
+  for (let idx = 0; idx < batches.length; idx++) {
+    const b = batches[idx];
+    const params = new URLSearchParams({
+      latitude:  b.lats.join(','),
+      longitude: b.lons.join(','),
+    });
+    const r = await fetch(`${ELEV_API}?${params}`);
+    if (!r.ok) throw new Error(`Elevation API batch ${idx}: ${r.status} ${r.statusText}`);
+    const d = await r.json();
+    parts.push(d.elevation);
+    // Brief pause between requests so we stay well within the free-tier
+    // rate limit (~600 req/min sustained; parallel bursts trigger 429s).
+    if (idx < batches.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+  }
 
   const flat = parts.flat();
 
