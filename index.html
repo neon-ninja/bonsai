@@ -209,6 +209,16 @@
     </div>
   </div>
 
+  <!-- Import map: resolves bare specifiers when running without a bundler -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.183.2/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.183.2/examples/jsm/"
+    }
+  }
+  </script>
+
   <!-- App entry point (ES module) -->
   <script type="module" src="src/main.js"></script>
 
