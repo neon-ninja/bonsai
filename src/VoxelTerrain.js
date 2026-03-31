@@ -1,5 +1,5 @@
 /**
- * VoxelTerrain — generates a 32×32 voxel land model.
+ * VoxelTerrain — generates a voxel land model.
  *
  * Uses two separate InstancedMesh objects:
  *   • solidMesh  — opaque terrain (rock, grass, sand, snow)
@@ -7,9 +7,13 @@
  *
  * Colours are updated dynamically based on environmental data
  * (weather, sun position, ML ecosystem state).
+ *
+ * When loadDEM() is called the terrain is rebuilt from real Auckland elevation
+ * data fetched from the Open-Meteo elevation API.
  */
 import * as THREE from 'three';
 import { Noise2D } from './utils/noise.js';
+import { fetchAucklandDEM } from './utils/dem.js';
 
 // ── Biome thresholds (normalised height 0–1) ────────────────────────────────
 const WATER_LEVEL  = 0.28;
@@ -55,13 +59,13 @@ export class VoxelTerrain {
     this.solidInstances = [];  // { x, y, z, biomeH }
     this.waterInstances = [];
 
-    this._generateTerrain();
+    this._generateFromNoise();
     this._buildMeshes();
   }
 
   // ── Terrain generation ─────────────────────────────────────────────────────
 
-  _generateTerrain() {
+  _generateFromNoise() {
     const scale = 0.08;
     let minH = Infinity, maxH = -Infinity;
     const raw = [];
@@ -87,6 +91,95 @@ export class VoxelTerrain {
         this.heightMap[z][x] = Math.max(1, Math.round(norm * this.maxH));
         this.stateMap[z][x] = { moisture: 0.5, vegetation: 0.5, activity: 0.3 };
       }
+    }
+  }
+
+  /**
+   * Populate heightMap / normMap / stateMap from a 2-D array of real-world
+   * elevations (metres).  Values ≤ 0 are treated as ocean.
+   *
+   * normMap is mapped so that:
+   *   • ocean cells (elev ≤ 0) → norm = 0  (deepWater colour, water overlay)
+   *   • land cells  (elev > 0) → norm ∈ [WATER_LEVEL, 1.0] proportional to
+   *     elevation, so existing biome thresholds keep working correctly.
+   *
+   * @param {number[][]} demData  [row][col] elevation in metres
+   */
+  _generateFromDEM(demData) {
+    // Find the maximum land elevation to use as the scaling ceiling.
+    let maxLandElev = 1; // guard against division by zero
+    for (let z = 0; z < this.gridD; z++) {
+      for (let x = 0; x < this.gridW; x++) {
+        if (demData[z][x] > maxLandElev) maxLandElev = demData[z][x];
+      }
+    }
+
+    for (let z = 0; z < this.gridD; z++) {
+      this.heightMap[z] = [];
+      this.normMap[z]   = [];
+      this.stateMap[z]  = [];
+      for (let x = 0; x < this.gridW; x++) {
+        const elev = demData[z][x];
+        let norm;
+        if (elev <= 0) {
+          // Ocean / harbour — sits below water level in every biome check.
+          norm = 0;
+        } else {
+          // Map positive elevation linearly onto [WATER_LEVEL, 1.0] so the
+          // existing biome colour thresholds remain meaningful:
+          //   near-sea-level land → sand / shallow-water colours
+          //   mid-elevation      → grass / forest
+          //   high terrain       → rock / snow
+          norm = WATER_LEVEL + (elev / maxLandElev) * (1 - WATER_LEVEL);
+        }
+        this.normMap[z][x] = norm;
+        this.heightMap[z][x] = Math.max(1, Math.round(norm * this.maxH));
+        this.stateMap[z][x] = { moisture: 0.5, vegetation: 0.5, activity: 0.3 };
+      }
+    }
+  }
+
+  // ── Mesh lifecycle ─────────────────────────────────────────────────────────
+
+  /** Remove current meshes from the scene and free GPU resources. */
+  _disposeMeshes() {
+    if (this.solidMesh) {
+      this.scene.remove(this.solidMesh);
+      this.solidMesh.geometry.dispose();
+      this.solidMesh.material.dispose();
+      this.solidMesh = null;
+    }
+    if (this.waterMesh) {
+      this.scene.remove(this.waterMesh);
+      this.waterMesh.geometry.dispose();
+      this.waterMesh.material.dispose();
+      this.waterMesh = null;
+    }
+  }
+
+  /**
+   * Fetch real-world elevation data for Auckland and rebuild the terrain.
+   * Falls back to the existing procedural terrain if the API is unreachable.
+   *
+   * This method is intentionally fire-and-forget from main.js so the app
+   * renders immediately with noise terrain while the DEM loads in the
+   * background.
+   */
+  async loadDEM() {
+    try {
+      console.info('[DEM] Fetching Auckland elevation data…');
+      const demData = await fetchAucklandDEM(this.gridW, this.gridD);
+
+      // Swap out all instance arrays and rebuild meshes in-place.
+      this.solidInstances = [];
+      this.waterInstances = [];
+      this._generateFromDEM(demData);
+      this._disposeMeshes();
+      this._buildMeshes();
+
+      console.info('[DEM] Auckland terrain rebuilt from real elevation data.');
+    } catch (err) {
+      console.warn('[DEM] Elevation fetch failed — keeping procedural terrain.', err.message);
     }
   }
 
