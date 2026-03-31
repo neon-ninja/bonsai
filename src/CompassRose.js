@@ -6,10 +6,10 @@
  * matches the orientation of the Auckland DEM data (row 0 = latNorth).
  *
  * Rotation formula (camera azimuth relative to north):
- *   deg = atan2(fx, −fz)
+ *   deg = −atan2(fx, −fz)
  * where (fx, fz) is the horizontal vector from the camera toward the terrain
  * centre.  This gives 0° when the camera looks north (N at screen-top) and
- * rotates naturally as the user orbits.
+ * rotates in the correct direction as the user orbits.
  */
 export class CompassRose {
   constructor() {
@@ -129,9 +129,10 @@ export class CompassRose {
     const fz =  terrainCentre.z - camera.position.z;
 
     // Angle that rotates the upward (−y) needle to point at world north (−Z).
-    // atan2(fx, −fz) gives 0° when camera is south of centre looking north,
-    // and increases clockwise as the camera orbits eastward.
-    const deg = Math.atan2(fx, -fz) * (180 / Math.PI);
+    // −atan2(fx, −fz) gives 0° when camera is south of centre looking north,
+    // and increases clockwise as the camera orbits westward (i.e. the rose
+    // rotates so that N always tracks true north on screen).
+    const deg = -Math.atan2(fx, -fz) * (180 / Math.PI);
 
     this._rose.style.transform = `rotate(${deg}deg)`;
   }
