@@ -141,6 +141,13 @@ export class SunSystem {
     this.hemiLight = new THREE.HemisphereLight(0x88aacc, 0x554433, 0.6);
     scene.add(this.hemiLight);
 
+    // Ambient light — provides a minimum base illumination so the terrain is
+    // always visible even at night or near sunset/sunrise.  Without this,
+    // Three.js r152+ physically-correct lighting combined with a near-black
+    // night-sky hemisphere colour results in a completely black scene.
+    this.ambientLight = new THREE.AmbientLight(0x8899bb, 1.2);
+    scene.add(this.ambientLight);
+
     // Visual sun disc
     const discGeom = new THREE.SphereGeometry(1.2, 16, 8);
     const discMat  = new THREE.MeshBasicMaterial({ color: 0xfffcd0 });
@@ -149,6 +156,11 @@ export class SunSystem {
 
     this._skyColour    = new THREE.Color();
     this._ambientColour = new THREE.Color();
+
+    // Initialise lighting to the current real-world sun position so the scene
+    // renders correctly on the very first frame (avoids a degenerate
+    // sun-light direction while sunLight.position is still (0,0,0)).
+    this.updateWithDate(new Date());
   }
 
   /** @returns {{ altitudeDeg, azimuthDeg }} */
@@ -223,6 +235,6 @@ export class SunSystem {
 
   /** Dispose resources */
   dispose() {
-    this.scene.remove(this.sunLight, this.hemiLight, this.sunDisc);
+    this.scene.remove(this.sunLight, this.hemiLight, this.sunDisc, this.ambientLight);
   }
 }
